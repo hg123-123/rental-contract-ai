@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>合同审查助手 - 对话</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+            background: #F8FAFC;
+            color: #1E293B;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* 顶部导航栏 */
+        .navbar {
+            height: 60px;
+            background: #fff;
+            border-bottom: 1px solid #E2E8F0;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            justify-content: space-between;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            width: 36px;
+            height: 36px;
+            background: #2563EB;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .logo-text {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .new-btn {
+            padding: 8px 20px;
+            background: #2563EB;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .new-btn:hover {
+            background: #1D4ED8;
+        }
+
+        /* 主体布局 */
+        .main-container {
+            display: flex;
+            height: calc(100vh - 60px);
+        }
+
+        /* 左侧边栏 */
+        .sidebar {
+            width: 280px;
+            background: #fff;
+            border-right: 1px solid #E2E8F0;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .sidebar-title {
+            font-size: 14px;
+            color: #64748B;
+            margin-bottom: 16px;
+        }
+
+        .history-item {
+            padding: 14px 16px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+            border: 1px solid #E2E8F0;
+        }
+
+        .history-item:hover {
+            background: #F8FAFC;
+        }
+
+        .history-item.active {
+            background: #EFF6FF;
+            border-color: #BFDBFE;
+        }
+
+        .history-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 4px;
+        }
+
+        .risk-badge {
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .risk-medium { color: #EAB308; }
+        .risk-high { color: #EF4444; }
+        .risk-low { color: #22C55E; }
+
+        .history-title {
+            font-size: 14px;
+            color: #1E293B;
+            font-weight: 500;
+        }
+
+        .history-date {
+            font-size: 12px;
+            color: #64748B;
+            margin-left: 24px;
+        }
+
+        /* 主内容区 - 对话 */
+        .content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* 对话滚动区域 */
+        .chat-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 40px;
+        }
+
+        /* 用户消息 */
+        .user-message {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 20px;
+        }
+
+        .user-bubble {
+            max-width: 600px;
+            background: #2563EB;
+            color: #fff;
+            padding: 14px 20px;
+            border-radius: 16px 16px 4px 16px;
+            font-size: 15px;
+            line-height: 1.6;
+        }
+
+        /* AI 消息 */
+        .ai-message {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .ai-avatar {
+            width: 32px;
+            height: 32px;
+            background: #2563EB;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .ai-content {
+            max-width: 700px;
+        }
+
+        .ai-bubble {
+            background: #fff;
+            padding: 14px 20px;
+            border-radius: 16px 16px 16px 4px;
+            font-size: 15px;
+            line-height: 1.6;
+            border: 1px solid #E2E8F0;
+        }
+
+        /* 思考中 */
+        .thinking {
+            color: #64748B;
+            font-style: italic;
+        }
+
+        .thinking-dots::after {
+            content: '';
+            animation: dots 1.5s infinite;
+        }
+
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60%, 100% { content: '...'; }
+        }
+
+        /* 结果卡片区域 */
+        .result-section {
+            margin-top: 8px;
+        }
+
+        .risk-summary {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .risk-level-tag {
+            padding: 4px 12px;
+            background: #FEFCE8;
+            color: #EAB308;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .risk-count {
+            font-size: 13px;
+            color: #64748B;
+        }
+
+        /* 左右对照区域 */
+        .compare-area {
+            display: flex;
+            gap: 16px;
+            height: 420px;
+        }
+
+        .compare-panel {
+            flex: 1;
+            background: #fff;
+            border: 1px solid #E2E8F0;
+            border-radius: 12px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .panel-header {
+            padding: 12px 16px;
+            border-bottom: 1px solid #F1F5F9;
+            font-size: 13px;
+            color: #64748B;
+            font-weight: 500;
+        }
+
+        .panel-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px;
+        }
+
+        /* 左侧 - 合同条款（可点击） */
+        .clause-item {
+            padding: 12px 14px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+
+        .clause-item:hover {
+            background: #F8FAFC;
+            border-color: #E2E8F0;
+        }
+
+        .clause-item.active {
+            background: #EFF6FF;
+            border-left: 3px solid #2563EB;
+        }
+
+        .clause-title {
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 6px;
+        }
+
+        .clause-item.active .clause-title {
+            color: #2563EB;
+        }
+
+        .clause-text {
+            font-size: 12px;
+            color: #64748B;
+            line-height: 1.5;
+        }
+
+        .clause-item.active .clause-text {
+            color: #475569;
+        }
+
+        .clause-highlight {
+            color: #EF4444;
+            font-weight: 500;
+        }
+
+        /* 右侧 - 风险解读（滚轮区域） */
+        .risk-scroll-container {
+            position: relative;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .risk-scroll-content {
+            height: 100%;
+            overflow-y: auto;
+            padding-right: 8px;
+            scroll-behavior: smooth;
+        }
+
+        /* 自定义滚动条 */
+        .risk-scroll-content::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .risk-scroll-content::-webkit-scrollbar-track {
+            background: #F1F5F9;
+            border-radius: 2px;
+        }
+
+        .risk-scroll-content::-webkit-scrollbar-thumb {
+            background: #CBD5E1;
+            border-radius: 2px;
+        }
+
+        .risk-card {
+            padding: 14px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border: 1px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .risk-card.active {
+            border-color: #2563EB;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.08);
+        }
+
+        .risk-card-high {
+            background: #FEF2F2;
+        }
+
+        .risk-card-medium {
+            background: #FEFCE8;
+        }
+
+        .risk-card-low {
+            background: #F0FDF4;
+        }
+
+        .risk-card-title {
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .risk-card-high .risk-card-title { color: #EF4444; }
+        .risk-card-medium .risk-card-title { color: #EAB308; }
+        .risk-card-low .risk-card-title { color: #22C55E; }
+
+        .risk-card-desc {
+            font-size: 12px;
+            color: #475569;
+            line-height: 1.5;
+            margin-bottom: 6px;
+        }
+
+        .risk-card-law {
+            font-size: 11px;
+            color: #2563EB;
+        }
+
+        /* 底部输入框 */
+        .input-area {
+            padding: 16px 40px;
+            background: #fff;
+            border-top: 1px solid #E2E8F0;
+        }
+
+        .input-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #fff;
+            border: 2px solid #E2E8F0;
+            border-radius: 16px;
+            padding: 14px 18px;
+            transition: border-color 0.2s;
+        }
+
+        .input-container:focus-within {
+            border-color: #2563EB;
+        }
+
+        .input-field {
+            width: 100%;
+            border: none;
+            outline: none;
+            font-size: 15px;
+            color: #1E293B;
+            resize: none;
+            height: 24px;
+            font-family: inherit;
+        }
+
+        .input-field::placeholder {
+            color: #94A3B8;
+        }
+
+        .input-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+
+        .toolbar-left {
+            display: flex;
+            gap: 8px;
+        }
+
+        .toolbar-btn {
+            padding: 5px 12px;
+            background: #F8FAFC;
+            border: 1px solid #E2E8F0;
+            border-radius: 6px;
+            font-size: 12px;
+            color: #475569;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .toolbar-btn:hover {
+            background: #EFF6FF;
+            border-color: #BFDBFE;
+            color: #2563EB;
+        }
+
+        .send-btn {
+            padding: 6px 18px;
+            background: #E2E8F0;
+            color: #64748B;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .send-btn.active {
+            background: #2563EB;
+            color: #fff;
+        }
+
+        /* 免责声明 */
+        .disclaimer {
+            text-align: center;
+            padding: 8px;
+            font-size: 11px;
+            color: #94A3B8;
+            background: #fff;
+        }
+    </style>
+</head>
+<body>
+    <!-- 顶部导航栏 -->
+    <nav class="navbar">
+        <div class="logo">
+            <div class="logo-icon">查</div>
+            <span class="logo-text">合同审查助手</span>
+        </div>
+        <button class="new-btn">+ 新建</button>
+    </nav>
+
+    <!-- 主体 -->
+    <div class="main-container">
+        <!-- 左侧边栏 -->
+        <aside class="sidebar">
+            <div class="sidebar-title">历史审查</div>
+
+            <div class="history-item active">
+                <div class="history-header">
+                    <span class="risk-badge risk-medium">中</span>
+                    <span class="history-title">租房合同-朝阳区...</span>
+                </div>
+                <div class="history-date">2026-07-15</div>
+            </div>
+
+            <div class="history-item">
+                <div class="history-header">
+                    <span class="risk-badge risk-high">高</span>
+                    <span class="history-title">劳动合同-字节...</span>
+                </div>
+                <div class="history-date">2026-07-12</div>
+            </div>
+
+            <div class="history-item">
+                <div class="history-header">
+                    <span class="risk-badge risk-low">低</span>
+                    <span class="history-title">租房合同-海淀...</span>
+                </div>
+                <div class="history-date">2026-07-10</div>
+            </div>
+        </aside>
+
+        <!-- 主内容区 -->
+        <main class="content">
+            <!-- 对话区域 -->
+            <div class="chat-area">
+                <!-- 用户消息 -->
+                <div class="user-message">
+                    <div class="user-bubble">帮我看看这份租房合同有没有问题</div>
+                </div>
+
+                <!-- AI 消息 - 分析完成 -->
+                <div class="ai-message">
+                    <div class="ai-avatar">查</div>
+                    <div class="ai-content">
+                        <div class="ai-bubble">
+                            已识别到 3 处风险，正在生成详细报告...
+                        </div>
+
+                        <!-- 结果区域 -->
+                        <div class="result-section">
+                            <div class="risk-summary">
+                                <span class="risk-level-tag">中 中等风险</span>
+                                <span class="risk-count">发现 3 处需注意</span>
+                            </div>
+
+                            <!-- 左右对照 -->
+                            <div class="compare-area">
+                                <!-- 左侧：合同原文 -->
+                                <div class="compare-panel">
+                                    <div class="panel-header">合同原文（点击条款查看风险）</div>
+                                    <div class="panel-content">
+                                        <div class="clause-item active" data-clause="1">
+                                            <div class="clause-title">第4条 违约责任</div>
+                                            <div class="clause-text">
+                                                提前退租需支付相当于<span class="clause-highlight">3个月租金</span>的违约金
+                                            </div>
+                                        </div>
+
+                                        <div class="clause-item" data-clause="2">
+                                            <div class="clause-title">第6条 维修责任</div>
+                                            <div class="clause-text">
+                                                自然损耗由租客承担维修费用
+                                            </div>
+                                        </div>
+
+                                        <div class="clause-item" data-clause="3">
+                                            <div class="clause-title">第8条 转租限制</div>
+                                            <div class="clause-text">
+                                                未经同意不得转租给第三方
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 右侧：AI 风险解读（滚轮） -->
+                                <div class="compare-panel">
+                                    <div class="panel-header">AI 风险解读</div>
+                                    <div class="panel-content">
+                                        <div class="risk-scroll-container">
+                                            <div class="risk-scroll-content" id="riskScroll">
+                                                <div class="risk-card risk-card-high active" data-risk="1">
+                                                    <div class="risk-card-title">① 违约金条款</div>
+                                                    <div class="risk-card-desc">
+                                                        <strong>风险：过高</strong><br>
+                                                        法律规定一般不超过1个月租金<br>
+                                                        建议：协商改为提前1个月通知 + 支付1个月租金
+                                                    </div>
+                                                    <div class="risk-card-law">《民法典》第585条</div>
+                                                </div>
+
+                                                <div class="risk-card risk-card-medium" data-risk="2">
+                                                    <div class="risk-card-title">② 维修责任条款</div>
+                                                    <div class="risk-card-desc">
+                                                        <strong>风险：责任倒置</strong><br>
+                                                        自然损耗应由房东承担<br>
+                                                        建议：修改为"自然损耗由甲方负责"
+                                                    </div>
+                                                    <div class="risk-card-law">《民法典》第712条</div>
+                                                </div>
+
+                                                <div class="risk-card risk-card-medium" data-risk="3">
+                                                    <div class="risk-card-title">③ 转租限制条款</div>
+                                                    <div class="risk-card-desc">
+                                                        <strong>需注意</strong><br>
+                                                        过于严格，建议增加"经甲方同意可转租"
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 底部输入框 -->
+            <div class="input-area">
+                <div class="input-container">
+                    <textarea class="input-field" placeholder="继续追问..."></textarea>
+                    <div class="input-toolbar">
+                        <div class="toolbar-left">
+                            <button class="toolbar-btn">图 图片</button>
+                            <button class="toolbar-btn">文 文件</button>
+                        </div>
+                        <button class="send-btn">发送</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 免责声明 -->
+            <div class="disclaimer">⚠️ 本分析仅供参考，不构成法律建议</div>
+        </main>
+    </div>
+
+    <script>
+        // 条款点击联动
+        const clauseItems = document.querySelectorAll('.clause-item');
+        const riskCards = document.querySelectorAll('.risk-card');
+        const riskScroll = document.getElementById('riskScroll');
+
+        clauseItems.forEach(item => {
+            item.addEventListener('click', function() {
+                const clauseId = this.dataset.clause;
+
+                // 高亮左侧条款
+                clauseItems.forEach(c => c.classList.remove('active'));
+                this.classList.add('active');
+
+                // 右侧滚动到对应风险
+                const targetRisk = document.querySelector(`[data-risk="${clauseId}"]`);
+                if (targetRisk) {
+                    // 滚动到目标卡片
+                    targetRisk.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+                    // 高亮风险卡片
+                    riskCards.forEach(r => r.classList.remove('active'));
+                    targetRisk.classList.add('active');
+                }
+            });
+        });
+
+        // 输入框交互
+        const inputField = document.querySelector('.input-field');
+        const sendBtn = document.querySelector('.send-btn');
+
+        inputField.addEventListener('input', function() {
+            if (this.value.trim().length > 0) {
+                sendBtn.classList.add('active');
+            } else {
+                sendBtn.classList.remove('active');
+            }
+        });
+    </script>
+</body>
+</html>

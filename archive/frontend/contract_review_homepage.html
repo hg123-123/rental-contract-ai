@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>合同审查助手</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+            background: #F8FAFC;
+            color: #1E293B;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* 顶部导航栏 */
+        .navbar {
+            height: 60px;
+            background: #fff;
+            border-bottom: 1px solid #E2E8F0;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            justify-content: space-between;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            width: 36px;
+            height: 36px;
+            background: #2563EB;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .logo-text {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .new-btn {
+            padding: 8px 20px;
+            background: #2563EB;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .new-btn:hover {
+            background: #1D4ED8;
+        }
+
+        /* 主体布局 */
+        .main-container {
+            display: flex;
+            height: calc(100vh - 60px);
+        }
+
+        /* 左侧边栏 */
+        .sidebar {
+            width: 280px;
+            background: #fff;
+            border-right: 1px solid #E2E8F0;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .sidebar-title {
+            font-size: 14px;
+            color: #64748B;
+            margin-bottom: 16px;
+        }
+
+        .history-item {
+            padding: 14px 16px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+            border: 1px solid #E2E8F0;
+        }
+
+        .history-item:hover {
+            background: #F8FAFC;
+        }
+
+        .history-item.active {
+            background: #EFF6FF;
+            border-color: #BFDBFE;
+        }
+
+        .history-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 4px;
+        }
+
+        .risk-badge {
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .risk-medium { color: #EAB308; }
+        .risk-high { color: #EF4444; }
+        .risk-low { color: #22C55E; }
+
+        .history-title {
+            font-size: 14px;
+            color: #1E293B;
+            font-weight: 500;
+        }
+
+        .history-date {
+            font-size: 12px;
+            color: #64748B;
+            margin-left: 24px;
+        }
+
+        /* 主内容区 */
+        .content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+        }
+
+        .welcome-section {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .welcome-title {
+            font-size: 32px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .welcome-subtitle {
+            font-size: 16px;
+            color: #64748B;
+        }
+
+        /* 输入框区域 */
+        .input-container {
+            width: 100%;
+            max-width: 700px;
+            background: #fff;
+            border: 2px solid #E2E8F0;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 30px;
+            transition: border-color 0.2s;
+        }
+
+        .input-container:focus-within {
+            border-color: #2563EB;
+        }
+
+        .input-field {
+            width: 100%;
+            border: none;
+            outline: none;
+            font-size: 16px;
+            color: #1E293B;
+            resize: none;
+            min-height: 60px;
+            font-family: inherit;
+        }
+
+        .input-field::placeholder {
+            color: #94A3B8;
+        }
+
+        .input-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #F1F5F9;
+        }
+
+        .toolbar-left {
+            display: flex;
+            gap: 8px;
+        }
+
+        .toolbar-btn {
+            padding: 6px 14px;
+            background: #F8FAFC;
+            border: 1px solid #E2E8F0;
+            border-radius: 6px;
+            font-size: 13px;
+            color: #475569;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .toolbar-btn:hover {
+            background: #EFF6FF;
+            border-color: #BFDBFE;
+            color: #2563EB;
+        }
+
+        .send-btn {
+            padding: 8px 20px;
+            background: #E2E8F0;
+            color: #64748B;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .send-btn.active {
+            background: #2563EB;
+            color: #fff;
+        }
+
+        /* 快捷卡片 */
+        .quick-cards {
+            display: flex;
+            gap: 16px;
+            width: 100%;
+            max-width: 700px;
+            justify-content: center;
+        }
+
+        .quick-card {
+            flex: 1;
+            max-width: 220px;
+            background: #fff;
+            border: 1px solid #E2E8F0;
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .quick-card:hover {
+            border-color: #BFDBFE;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.08);
+            transform: translateY(-2px);
+        }
+
+        .quick-card-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .quick-card-icon {
+            width: 32px;
+            height: 32px;
+            background: #EFF6FF;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .quick-card-title {
+            font-size: 15px;
+            font-weight: 500;
+        }
+
+        .quick-card-desc {
+            font-size: 13px;
+            color: #64748B;
+            line-height: 1.5;
+        }
+
+        /* 底部免责声明 */
+        .disclaimer {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 12px;
+            color: #94A3B8;
+        }
+    </style>
+</head>
+<body>
+    <!-- 顶部导航栏 -->
+    <nav class="navbar">
+        <div class="logo">
+            <div class="logo-icon">查</div>
+            <span class="logo-text">合同审查助手</span>
+        </div>
+        <button class="new-btn">+ 新建</button>
+    </nav>
+
+    <!-- 主体 -->
+    <div class="main-container">
+        <!-- 左侧边栏 -->
+        <aside class="sidebar">
+            <div class="sidebar-title">历史审查</div>
+
+            <div class="history-item active">
+                <div class="history-header">
+                    <span class="risk-badge risk-medium">中</span>
+                    <span class="history-title">租房合同-朝阳区...</span>
+                </div>
+                <div class="history-date">2026-07-15</div>
+            </div>
+
+            <div class="history-item">
+                <div class="history-header">
+                    <span class="risk-badge risk-high">高</span>
+                    <span class="history-title">劳动合同-字节...</span>
+                </div>
+                <div class="history-date">2026-07-12</div>
+            </div>
+
+            <div class="history-item">
+                <div class="history-header">
+                    <span class="risk-badge risk-low">低</span>
+                    <span class="history-title">租房合同-海淀...</span>
+                </div>
+                <div class="history-date">2026-07-10</div>
+            </div>
+        </aside>
+
+        <!-- 主内容区 -->
+        <main class="content">
+            <div class="welcome-section">
+                <h1 class="welcome-title">你好，我是合同助手</h1>
+                <p class="welcome-subtitle">上传合同文件，或直接问我合同问题</p>
+            </div>
+
+            <!-- 输入框 -->
+            <div class="input-container">
+                <textarea class="input-field" placeholder="输入合同问题，或上传合同文件..."></textarea>
+                <div class="input-toolbar">
+                    <div class="toolbar-left">
+                        <button class="toolbar-btn">图 图片</button>
+                        <button class="toolbar-btn">文 文件</button>
+                    </div>
+                    <button class="send-btn">发送</button>
+                </div>
+            </div>
+
+            <!-- 快捷卡片 -->
+            <div class="quick-cards">
+                <div class="quick-card">
+                    <div class="quick-card-header">
+                        <div class="quick-card-icon">住</div>
+                        <span class="quick-card-title">租房合同审查</span>
+                    </div>
+                    <p class="quick-card-desc">上传租房合同，识别风险条款</p>
+                </div>
+
+                <div class="quick-card">
+                    <div class="quick-card-header">
+                        <div class="quick-card-icon">工</div>
+                        <span class="quick-card-title">劳动合同审查</span>
+                    </div>
+                    <p class="quick-card-desc">上传劳动合同，识别风险条款</p>
+                </div>
+
+                <div class="quick-card">
+                    <div class="quick-card-header">
+                        <div class="quick-card-icon">问</div>
+                        <span class="quick-card-title">常见问题</span>
+                    </div>
+                    <p class="quick-card-desc">押金不退怎么办？</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- 底部免责声明 -->
+    <div class="disclaimer">⚠️ 本分析仅供参考，不构成法律建议</div>
+
+    <script>
+        // 输入框交互
+        const inputField = document.querySelector('.input-field');
+        const sendBtn = document.querySelector('.send-btn');
+
+        inputField.addEventListener('input', function() {
+            if (this.value.trim().length > 0) {
+                sendBtn.classList.add('active');
+            } else {
+                sendBtn.classList.remove('active');
+            }
+        });
+
+        // 快捷卡片点击
+        document.querySelectorAll('.quick-card').forEach(card => {
+            card.addEventListener('click', function() {
+                const title = this.querySelector('.quick-card-title').textContent;
+                inputField.value = '我想审查' + title;
+                sendBtn.classList.add('active');
+                inputField.focus();
+            });
+        });
+    </script>
+</body>
+</html>
